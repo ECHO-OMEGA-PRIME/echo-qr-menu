@@ -1,0 +1,26 @@
+name = "echo-qr-menu"
+main = "src/index.ts"
+compatibility_date = "2024-12-01"
+
+[observability]
+enabled = true
+
+[[d1_databases]]
+binding = "DB"
+database_name = "echo-qr-menu"
+database_id = "4b26e697-a609-4e5c-b807-ad0be80fe71d"
+
+[[kv_namespaces]]
+binding = "QM_CACHE"
+id = "1aaaa608bf1c477f9276f50501aea6a5"
+
+[triggers]
+crons = ["0 4 * * *"]
+
+[[services]]
+binding = "ENGINE_RUNTIME"
+service = "echo-engine-runtime"
+
+[[services]]
+binding = "SHARED_BRAIN"
+service = "echo-shared-brain"
