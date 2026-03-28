@@ -234,7 +234,8 @@ export default {
     try {
       /* ══════════════════ PUBLIC ══════════════════ */
 
-      if (p === '/health' || p === '/') return json({ status: 'ok', service: 'echo-qr-menu', version: '1.0.0', timestamp: new Date().toISOString() });
+      if (p === '/') return json({ name: 'echo-qr-menu', status: 'ok', version: '1.0.0', docs: '/health', timestamp: new Date().toISOString() });
+      if (p === '/health') return json({ status: 'ok', service: 'echo-qr-menu', version: '1.0.0', timestamp: new Date().toISOString() });
 
       /* ── QR Code scan → render menu ── */
       if (m === 'GET' && p.startsWith('/m/')) {
