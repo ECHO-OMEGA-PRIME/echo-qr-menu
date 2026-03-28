@@ -630,14 +630,14 @@ export default {
         return json({ success: true, data: rows.results });
       }
 
-      return json({ error: 'Not found', endpoints: ['/health', '/m/:code', '/menu/:slug', '/restaurants', '/menus', '/categories', '/items', '/qr-codes', '/orders', '/reviews', '/analytics', '/ai'] }, 404);
+      return json({ error: 'Not found', path: p, endpoints: ['/health', '/m/:code', '/menu/:slug', '/restaurants', '/menus', '/categories', '/items', '/qr-codes', '/orders', '/reviews', '/analytics', '/ai'] }, 404);
 
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : 'Internal error';
       if (msg.includes('JSON')) {
         return json({ error: 'Invalid JSON body' }, 400);
       }
-      console.error(`[echo-qr-menu] ${msg}`);
+      console.error(`[echo-qr-menu] Unhandled error: ${msg}`);
       return json({ error: 'Internal server error' }, 500);
     }
   },
