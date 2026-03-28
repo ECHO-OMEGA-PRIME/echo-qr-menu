@@ -224,7 +224,7 @@ function showMenu(id){
 }
 
 export default {
-  async fetch(req: Request, env: Env): Promise<Response> {
+  async fetch(req: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
     if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers: { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Headers': '*', 'Access-Control-Allow-Methods': '*' } });
 
     const url = new URL(req.url);
@@ -251,12 +251,12 @@ export default {
 
         // Custom redirect URL
         if (qr.custom_url) {
-          // Still record scan
-          (async () => {
+          // Record scan (ctx.waitUntil to prevent data loss)
+          ctx.waitUntil((async () => {
             await env.DB.prepare('INSERT INTO scans (qr_id, restaurant_id, ip_hash, user_agent, country, city, device, table_number) VALUES (?, ?, ?, ?, ?, ?, ?, ?)').bind(qr.id, qr.restaurant_id, req.headers.get('CF-Connecting-IP')?.slice(0, 8) || '', sanitize(req.headers.get('User-Agent'), 200), req.headers.get('CF-IPCountry') || '', req.headers.get('CF-IPCity') || '', /mobile/i.test(req.headers.get('User-Agent') || '') ? 'mobile' : 'desktop', qr.table_number).run();
             await env.DB.prepare('UPDATE qr_codes SET total_scans = total_scans + 1, last_scanned_at = datetime(\'now\') WHERE id = ?').bind(qr.id).run();
             await env.DB.prepare('UPDATE restaurants SET total_scans = total_scans + 1 WHERE id = ?').bind(qr.restaurant_id).run();
-          })();
+          })());
           return Response.redirect(qr.custom_url as string, 302);
         }
 
@@ -276,12 +276,12 @@ export default {
           items = (await env.DB.prepare(`SELECT * FROM items WHERE menu_id IN (${placeholders}) AND available = 1 ORDER BY sort_order`).bind(...menuIds).all()).results;
         }
 
-        // Record scan async
-        (async () => {
+        // Record scan (ctx.waitUntil to prevent data loss)
+        ctx.waitUntil((async () => {
           await env.DB.prepare('INSERT INTO scans (qr_id, restaurant_id, ip_hash, user_agent, country, city, device, table_number) VALUES (?, ?, ?, ?, ?, ?, ?, ?)').bind(qr.id, qr.restaurant_id, req.headers.get('CF-Connecting-IP')?.slice(0, 8) || '', sanitize(req.headers.get('User-Agent'), 200), req.headers.get('CF-IPCountry') || '', req.headers.get('CF-IPCity') || '', /mobile/i.test(req.headers.get('User-Agent') || '') ? 'mobile' : 'desktop', qr.table_number).run();
           await env.DB.prepare('UPDATE qr_codes SET total_scans = total_scans + 1, last_scanned_at = datetime(\'now\') WHERE id = ?').bind(qr.id).run();
           await env.DB.prepare('UPDATE restaurants SET total_scans = total_scans + 1 WHERE id = ?').bind(qr.restaurant_id).run();
-        })();
+        })());
 
         const html = menuPage(restaurant, menus.results, categories, items, qr.table_number as string);
         return new Response(html, { headers: { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'public, max-age=60' } });
