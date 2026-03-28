@@ -290,14 +290,7 @@ export default {
       if (m === 'GET' && p.startsWith('/menu/')) {
         const slug = p.split('/')[2];
         const restaurant = await env.DB.prepare('SELECT * FROM restaurants WHERE slug = ? AND status = ?').bind(slug, 'active').first();
-        if (!restaurant) } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Unknown error';
-      const stack = err instanceof Error ? err.stack : undefined;
-      slog('error', 'Unhandled request error', { method: m, path: p, error: msg, stack });
-      return json({ error: 'Internal server error', message: msg, path: p }, 500);
-    }
-
-    return json({ error: 'Not found' }, 404);
+        if (!restaurant) return json({ error: 'Resource not found' }, 404);
         const menus = await env.DB.prepare('SELECT * FROM menus WHERE restaurant_id = ? AND status = ? ORDER BY sort_order').bind(restaurant.id, 'active').all();
         const menuIds = menus.results.map((m: Record<string, unknown>) => m.id);
         let categories: Record<string, unknown>[] = [];
@@ -369,8 +362,7 @@ export default {
       }
 
       /* ══════════════════ AUTH REQUIRED ══════════════════ */
-      try {
-    if (!authOk(req, env)) return json({ error: 'Unauthorized' }, 401);
+      if (!authOk(req, env)) return json({ error: 'Unauthorized' }, 401);
 
       /* ── Restaurants CRUD ── */
       if (m === 'GET' && p === '/restaurants') {
@@ -382,14 +374,7 @@ export default {
       if (m === 'GET' && p.match(/^\/restaurants\/\d+$/)) {
         const id = parseInt(p.split('/')[2]);
         const r = await env.DB.prepare('SELECT * FROM restaurants WHERE id = ?').bind(id).first();
-        if (!r) } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Unknown error';
-      const stack = err instanceof Error ? err.stack : undefined;
-      slog('error', 'Unhandled request error', { method: m, path: p, error: msg, stack });
-      return json({ error: 'Internal server error', message: msg, path: p }, 500);
-    }
-
-    return json({ error: 'Not found' }, 404);
+        if (!r) return json({ error: 'Resource not found' }, 404);
         return json({ success: true, data: r });
       }
 
